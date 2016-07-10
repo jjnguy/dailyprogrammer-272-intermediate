@@ -45,11 +45,12 @@
         for (var x = 0; x < sourceCanvas.width; x++){
           var sourcePixl = pixel(srcImg, x, y);
           var srcLumin = sourcePixl.luminosity();
+
           var color = (srcLumin + carryover) > 127.5 ? BLACK : WHITE;
 
           var resultPixl = {r: color, g: color, b: color, a: 255};
           carryover += (srcLumin - color);
-          carryover = 0;
+
           setPixel(dithImg, x, y, resultPixl);
         }
       }
@@ -64,20 +65,19 @@
     }
 
     function setPixel(imageData, x, y, pixl){
-      imageData.data[((x *(imageData.width*4)) + (y*4)) + 0] = pixl.r,
-      imageData.data[((x *(imageData.width*4)) + (y*4)) + 1] = pixl.g,
-      imageData.data[((x *(imageData.width*4)) + (y*4)) + 2] = pixl.b,
-      imageData.data[((x *(imageData.width*4)) + (y*4)) + 3] = pixl.a
+      imageData.data[((y *(imageData.width*4)) + (x*4)) + 0] = pixl.r,
+      imageData.data[((y *(imageData.width*4)) + (x*4)) + 1] = pixl.g,
+      imageData.data[((y *(imageData.width*4)) + (x*4)) + 2] = pixl.b,
+      imageData.data[((y *(imageData.width*4)) + (x*4)) + 3] = pixl.a
     }
 
     function pixel(imageData, x, y){
       // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
-      //imageData.data[((50*(imageData.width*4)) + (200*4)) + 2]
       return {
-        r: imageData.data[((x *(imageData.width*4)) + (y*4)) + 0],
-        g: imageData.data[((x *(imageData.width*4)) + (y*4)) + 1],
-        b: imageData.data[((x *(imageData.width*4)) + (y*4)) + 2],
-        a: imageData.data[((x *(imageData.width*4)) + (y*4)) + 3],
+        r: imageData.data[((y *(imageData.width*4)) + (x*4)) + 0],
+        g: imageData.data[((y *(imageData.width*4)) + (x*4)) + 1],
+        b: imageData.data[((y *(imageData.width*4)) + (x*4)) + 2],
+        a: imageData.data[((y *(imageData.width*4)) + (x*4)) + 3],
         luminosity: function (){
           //http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
           return 0.21 * this.r + 0.72 * this.g + 0.07 * this.b;
