@@ -18,14 +18,16 @@
       ditherUrl(url);
     });
 
-    function loadOriginalImage(url) {
+    function loadOriginalImage(url, onload) {
       // image loading adapted from: http://stackoverflow.com/a/4776378/2598
       var ctx = originalCanvas.getContext('2d');
       var img = new Image();
+      img.crossOrigin = "Anonymous";
       img.onload = function(ele){
         originalCanvas.width = ditherCanvas.width = ele.currentTarget.width;
         originalCanvas.height = ditherCanvas.height = ele.currentTarget.height;
-        ctx.drawImage(img,0,0); // Or at whatever offset you like
+        ctx.drawImage(img,0,0);
+        onload();
       };
       img.src = url;
     }
@@ -35,13 +37,52 @@
       var dithCtx = ditherCanvas.getContext('2d');
       var srcImg = srcCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
       var dithImg = dithCtx.createImageData(srcImg);
-      
+      var BLACK = 255;
+      var WHITE = 0;
+      // loop through each pixel and assign it to black or white. Take the under or over flow and apply it to the next pixel.
+      for (var y = 0; y < sourceCanvas.height; y++){
+        var carryover = 0;
+        for (var x = 0; x < sourceCanvas.width; x++){
+          var sourcePixl = pixel(srcImg, x, y);
+          var srcLumin = sourcePixl.luminosity();
+          var color = (srcLumin + carryover) > 127.5 ? BLACK : WHITE;
+
+          var resultPixl = {r: color, g: color, b: color, a: 255};
+          carryover += (srcLumin - color);
+          carryover = 0;
+          setPixel(dithImg, x, y, resultPixl);
+        }
+      }
+
       dithCtx.putImageData(dithImg, 0, 0);
     }
 
     function ditherUrl(url) {
-      loadOriginalImage(url);
-      ditherOntoNewCanvas(originalCanvas, ditherCanvas);
+      loadOriginalImage(url, function(){
+        ditherOntoNewCanvas(originalCanvas, ditherCanvas);
+      });
+    }
+
+    function setPixel(imageData, x, y, pixl){
+      imageData.data[((x *(imageData.width*4)) + (y*4)) + 0] = pixl.r,
+      imageData.data[((x *(imageData.width*4)) + (y*4)) + 1] = pixl.g,
+      imageData.data[((x *(imageData.width*4)) + (y*4)) + 2] = pixl.b,
+      imageData.data[((x *(imageData.width*4)) + (y*4)) + 3] = pixl.a
+    }
+
+    function pixel(imageData, x, y){
+      // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
+      //imageData.data[((50*(imageData.width*4)) + (200*4)) + 2]
+      return {
+        r: imageData.data[((x *(imageData.width*4)) + (y*4)) + 0],
+        g: imageData.data[((x *(imageData.width*4)) + (y*4)) + 1],
+        b: imageData.data[((x *(imageData.width*4)) + (y*4)) + 2],
+        a: imageData.data[((x *(imageData.width*4)) + (y*4)) + 3],
+        luminosity: function (){
+          //http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
+          return 0.21 * this.r + 0.72 * this.g + 0.07 * this.b;
+        }
+      };
     }
 
     </script>
