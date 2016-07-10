@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+    <form id="dither-url-form">
+      <input id="to-dither-url" type="url" value="https://scontent-ord1-1.xx.fbcdn.net/t31.0-8/13667805_10206830455342909_7177330052013098529_o.jpg"/>
+      <button>load image and dither!</button>
+    </form>
+    <canvas id="original"></canvas>
+    <canvas id="result"></canvas>
+    <script>
+    var originalCanvas = document.getElementById('original');
+    var ditherCanvas = document.getElementById('result');
+    var form = document.getElementById('dither-url-form');
+    form.addEventListener('submit', function(evt){
+      evt.preventDefault();
+      var url = document.getElementById('to-dither-url').value;
+      ditherUrl(url);
+    });
+
+    function loadOriginalImage(url) {
+      // image loading adapted from: http://stackoverflow.com/a/4776378/2598
+      var ctx = originalCanvas.getContext('2d');
+      var img = new Image();
+      img.onload = function(ele){
+        originalCanvas.width = ditherCanvas.width = ele.currentTarget.width;
+        originalCanvas.height = ditherCanvas.height = ele.currentTarget.height;
+        ctx.drawImage(img,0,0); // Or at whatever offset you like
+      };
+      img.src = url;
+    }
+
+    function ditherOntoNewCanvas(sourceCanvas, ditherCanvas){
+      var srcCtx = sourceCanvas.getContext('2d');
+      var dithCtx = ditherCanvas.getContext('2d');
+      var srcImg = srcCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+      var dithImg = dithCtx.createImageData(srcImg);
+      
+      dithCtx.putImageData(dithImg, 0, 0);
+    }
+
+    function ditherUrl(url) {
+      loadOriginalImage(url);
+      ditherOntoNewCanvas(originalCanvas, ditherCanvas);
+    }
+
+    </script>
+  </body>
+</html>
