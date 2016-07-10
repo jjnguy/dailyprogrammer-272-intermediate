@@ -39,17 +39,21 @@
       var dithImg = dithCtx.createImageData(srcImg);
       var BLACK = 255;
       var WHITE = 0;
+
+      var carryovers = { row : [], col: []};
+
       // loop through each pixel and assign it to black or white. Take the under or over flow and apply it to the next pixel.
       for (var y = 0; y < sourceCanvas.height; y++){
-        var carryover = 0;
         for (var x = 0; x < sourceCanvas.width; x++){
           var sourcePixl = pixel(srcImg, x, y);
           var srcLumin = sourcePixl.luminosity();
 
-          var color = (srcLumin + carryover) > 127.5 ? BLACK : WHITE;
+          var color = (srcLumin + (carryovers['row'][y] || 0) / 2 + (carryovers['col'][x] || 0) / 2) > 127.5 ? BLACK : WHITE;
 
           var resultPixl = {r: color, g: color, b: color, a: 255};
-          carryover += (srcLumin - color);
+
+          carryovers['row'][y + 1] = (carryovers['row'][y] || 0) + (srcLumin - color);
+          carryovers['col'][x + 1] = (carryovers['col'][x] || 0) + (srcLumin - color);
 
           setPixel(dithImg, x, y, resultPixl);
         }
